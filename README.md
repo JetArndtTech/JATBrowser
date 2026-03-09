@@ -24,7 +24,7 @@ Git (optional but recommended)
 You can download Node.js from:
 https://nodejs.org/
 
-Installing JATBrowser (from source)
+## Installing JATBrowser (from source)
 1. Clone the repository
 
 Open a terminal or command prompt and run:
