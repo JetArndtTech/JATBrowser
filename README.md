@@ -30,26 +30,23 @@ https://nodejs.org/
 Open a terminal or command prompt and run:
 
 git clone https://github.com/JetArndtTech/JATBrowser.git
-2. Enter the project folder
-cd JATBrowser
-3. Install dependencies
+
+2. Install dependencies
 
 This installs Electron and all required packages.
-
 npm install
-4. Start the browser
+
+3. Start the browser
 npm start
 
 This will launch JATBrowser in development mode.
 
-Building the Desktop App
+### Building the Desktop App
 
 To package JATBrowser into an installable desktop application:
-
 npm run dist
 
 After building, the compiled application will appear inside the dist folder.
-
 Example builds may include:
 
 Windows installer (.exe)
