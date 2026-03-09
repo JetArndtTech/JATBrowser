@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>JATBrowser</title>
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #0f2f1f;
+    color: #fff;
+}
+
+#topbar {
+    display: flex;
+    flex-direction: column;
+    background: #133822;
+    border-bottom: 2px solid #225533;
+}
+
+#tabsContainer {
+    display: flex;
+    overflow-x: auto;
+    padding: 5px 10px;
+    gap: 5px;
+}
+
+.tabItem {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: #1b432b;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: 0.2s;
+}
+.tabItem:hover { background: #326d44; }
+.tabItem.active { background: #2a6a3f; }
+
+.tabItem span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}
+.tabItem button {
+    flex-shrink: 0;
+    margin-left: 5px;
+    padding: 0 6px;
+    border: none;
+    background: #225533;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.tabItem button:hover { background: #326d44; }
+
+/* + new tab button as a tab */
+#addTabBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background: #225533;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+    flex-shrink: 0;
+    transition: 0.2s;
+}
+#addTabBtn:hover { background: #326d44; }
+
+/* navigation bar */
+#navBar {
+    display: flex;
+    padding: 5px 10px;
+    align-items: center;
+    background: #133822;
+    border-top: 2px solid #225533;
+}
+
+#urlInput {
+    flex: 1;
+    height: 36px;
+    font-size: 16px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid #225533;
+    background: #0f2f1f;
+    color: #c0f2c0;
+}
+#urlInput:focus { outline: 2px solid #2a6a3f; }
+
+button.nav {
+    margin-left: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #225533;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+button.nav:hover { background: #2a6a3f; }
+
+/* main content takes all remaining space */
+#mainContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+</style>
+</head>
+<body>
+<div id="topbar">
+    <div id="tabsContainer">
+        <div id="addTabBtn">+</div>
+    </div>
+    <div id="navBar">
+        <button id="backBtn" class="nav">⬅</button>
+        <button id="forwardBtn" class="nav">➡</button>
+        <button id="refreshBtn" class="nav">⟳</button>
+        <input id="urlInput" placeholder="Type URL or search" />
+        <button id="goBtn" class="nav">Go</button>
+    </div>
+</div>
+<div id="mainContent"></div>
+
+<script>
+const urlInput = document.getElementById("urlInput");
+const goBtn = document.getElementById("goBtn");
+const backBtn = document.getElementById("backBtn");
+const forwardBtn = document.getElementById("forwardBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const tabsContainer = document.getElementById("tabsContainer");
+const addTabBtn = document.getElementById("addTabBtn");
+
+let tabs = [];
+
+function addTab(title, index) {
+    if (tabs[index]) return;
+    const tabEl = document.createElement("div");
+    tabEl.className = "tabItem";
+    const span = document.createElement("span");
+    span.textContent = title || "New Tab";
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        window.electronAPI.closeTab(index);
+    });
+    tabEl.appendChild(span);
+    tabEl.appendChild(closeBtn);
+    tabEl.addEventListener("click", () => {
+        window.electronAPI.switchTab(index);
+        updateActiveTab(index);
+    });
+    // insert before the + tab
+    tabsContainer.insertBefore(tabEl, addTabBtn);
+    tabs[index] = tabEl;
+    updateActiveTab(index);
+}
+
+function updateTabTitle(index, title) {
+    if (!tabs[index]) addTab(title, index);
+    else tabs[index].firstChild.textContent = title;
+}
+
+function updateActiveTab(activeIndex) {
+    tabs.forEach((tabEl, i) => {
+        if (tabEl) tabEl.classList.toggle("active", i === activeIndex);
+    });
+}
+
+function navigate() {
+    let url = urlInput.value.trim();
+    if (!url) return;
+    window.electronAPI.navigate(url);
+}
+
+// Event listeners
+goBtn.addEventListener("click", navigate);
+urlInput.addEventListener("keydown", e => { if(e.key==="Enter") navigate(); });
+backBtn.addEventListener("click", () => window.electronAPI.navAction("back"));
+forwardBtn.addEventListener("click", () => window.electronAPI.navAction("forward"));
+refreshBtn.addEventListener("click", () => window.electronAPI.navAction("refresh"));
+addTabBtn.addEventListener("click", () => window.electronAPI.newTab("https://www.google.com"));
+
+// IPC Listeners
+window.electronAPI.onTabTitle(({index, title}) => {
+    const shortTitle = title.length > 25 ? title.slice(0,22)+"..." : title;
+    updateTabTitle(index, shortTitle);
+});
+
+window.electronAPI.onTabClosed(index => {
+    if(tabs[index]) {
+        tabsContainer.removeChild(tabs[index]);
+        tabs[index] = null;
+    }
+});
+
+window.electronAPI.onUrlChange(url => urlInput.value = url);
+</script>
+</body>
+</html>

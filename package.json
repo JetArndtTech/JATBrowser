@@ -1,0 +1,25 @@
+{
+  "name": "jat-browser",
+  "version": "1.1.0",
+  "description": "Jet Arndt Technologies™ Browser",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^40.6.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.jat.browser",
+    "productName": "JATBrowser",
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
